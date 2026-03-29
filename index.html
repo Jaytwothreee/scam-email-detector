@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scam Email Detector</title>
+    <style>
+        /* ============================================================
+           RESET & BASE
+           ============================================================ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 18px;
+            line-height: 1.65;
+            color: #1a1a1a;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        /* ============================================================
+           LAYOUT
+           ============================================================ */
+        .container {
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 0 20px 48px;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        header {
+            text-align: center;
+            padding: 36px 0 28px;
+            border-bottom: 4px solid #b03020;
+            margin-bottom: 36px;
+        }
+
+        header h1 {
+            font-size: 2.4rem;
+            color: #b03020;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        header .subtitle {
+            color: #555;
+            font-size: 1.1rem;
+        }
+
+        header .shortcut-hint {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        /* ============================================================
+           CARD — shared white panel style
+           ============================================================ */
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 28px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.09);
+            margin-bottom: 24px;
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+            color: #1a1a1a;
+        }
+
+        /* ============================================================
+           INPUT SECTION
+           ============================================================ */
+        label[for="email-input"] {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+
+        #email-input {
+            width: 100%;
+            min-height: 220px;
+            padding: 16px;
+            font-size: 1rem;
+            font-family: inherit;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            resize: vertical;
+            line-height: 1.65;
+            color: #1a1a1a;
+            background: #fafafa;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        #email-input:focus {
+            outline: none;
+            border-color: #2471a3;
+            box-shadow: 0 0 0 3px rgba(36,113,163,0.18);
+            background: #fff;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 14px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================================
+           BUTTONS
+           ============================================================ */
+        .btn {
+            padding: 16px 36px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            font-family: inherit;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.18s, transform 0.1s;
+        }
+
+        .btn:focus-visible {
+            outline: 3px solid #2471a3;
+            outline-offset: 3px;
+        }
+
+        .btn:active { transform: scale(0.97); }
+
+        .btn-primary {
+            background: #b03020;
+            color: #fff;
+            min-width: 180px;
+        }
+
+        .btn-primary:hover { background: #922818; }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #444;
+            border: 2px solid #ccc;
+        }
+
+        .btn-secondary:hover { background: #dde1e3; }
+
+        /* ============================================================
+           RESULTS WRAPPER — hidden until analysis runs
+           ============================================================ */
+        #results { display: none; }
+
+        /* ============================================================
+           RISK BADGE
+           ============================================================ */
+        #risk-badge-wrap { margin-bottom: 24px; }
+
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 30px;
+            border-radius: 10px;
+            font-size: 1.45rem;
+            font-weight: bold;
+            border-width: 2px;
+            border-style: solid;
+        }
+
+        .risk-badge .badge-icon { font-size: 1.7rem; }
+
+        .risk-high   { background: #fae0db; color: #7d1f14; border-color: #b03020; }
+        .risk-medium { background: #fef6e4; color: #8a5800; border-color: #e09000; }
+        .risk-low    { background: #dff5e8; color: #1a6636; border-color: #22a355; }
+
+        /* ============================================================
+           SCORE BAR
+           ============================================================ */
+        .score-label {
+            font-size: 1rem;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        .score-bar-track {
+            background: #e8eaed;
+            border-radius: 14px;
+            height: 22px;
+            overflow: hidden;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            border-radius: 14px;
+            transition: width 0.7s cubic-bezier(.4,0,.2,1);
+        }
+
+        /* ============================================================
+           FLAGS LIST
+           ============================================================ */
+        .flag-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .flag-item:last-child { border-bottom: none; }
+
+        /* Coloured category dot */
+        .flag-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .dot-urgency   { background: #e09000; }
+        .dot-financial { background: #c0392b; }
+        .dot-personal  { background: #8e44ad; }
+        .dot-url       { background: #2471a3; }
+        .dot-format    { background: #148f77; }
+
+        .flag-category {
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .flag-explanation {
+            color: #555;
+            font-size: 0.96rem;
+        }
+
+        .flag-matches {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .flag-matches-label { margin-right: 4px; }
+
+        .match-chip {
+            display: inline-block;
+            background: #f0f2f5;
+            border: 1px solid #d5d8dc;
+            border-radius: 4px;
+            padding: 2px 9px;
+            margin: 2px 2px 2px 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.88rem;
+            color: #333;
+        }
+
+        /* ============================================================
+           HIGHLIGHTED EMAIL DISPLAY
+           ============================================================ */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 14px;
+            font-size: 0.92rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .legend-swatch {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        /* The actual email body — preserve whitespace */
+        #email-display {
+            font-size: 0.96rem;
+            line-height: 1.85;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: inherit;
+            padding: 18px;
+            background: #fafafa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* Highlight marks — each category gets its own colour */
+        mark {
+            border-radius: 3px;
+            padding: 1px 3px;
+            font-weight: bold;
+            /* Remove browser default yellow */
+            background: unset;
+        }
+
+        mark.hl-urgency   { background: #fdebd0; color: #784212; outline: 1.5px solid #e09000; }
+        mark.hl-financial { background: #fadbd8; color: #641e16; outline: 1.5px solid #c0392b; }
+        mark.hl-personal  { background: #e8daef; color: #4a235a; outline: 1.5px solid #8e44ad; }
+        mark.hl-url       { background: #d6eaf8; color: #1a5276; outline: 1.5px solid #2471a3; }
+        mark.hl-format    { background: #d1f2eb; color: #0e6655; outline: 1.5px solid #148f77; }
+
+        /* ============================================================
+           ADVICE SECTION
+           ============================================================ */
+        .advice-card {
+            border-radius: 10px;
+            padding: 28px 30px;
+            margin-bottom: 24px;
+        }
+
+        .advice-card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+        }
+
+        .advice-card ul { padding-left: 26px; }
+
+        .advice-card li {
+            margin-bottom: 11px;
+            line-height: 1.65;
+        }
+
+        .advice-high {
+            background: #fae0db;
+            border: 2px solid #b03020;
+        }
+
+        .advice-high h2 { color: #7d1f14; }
+
+        .advice-medium {
+            background: #fef6e4;
+            border: 2px solid #e09000;
+        }
+
+        .advice-medium h2 { color: #8a5800; }
+
+        .advice-low {
+            background: #dff5e8;
+            border: 2px solid #22a355;
+        }
+
+        .advice-low h2 { color: #1a6636; }
+
+        /* ============================================================
+           FOOTER
+           ============================================================ */
+        footer {
+            text-align: center;
+            padding: 28px 10px;
+            color: #888;
+            font-size: 0.9rem;
+            border-top: 1px solid #d5d8dc;
+            margin-top: 12px;
+            line-height: 1.7;
+        }
+
+        /* ============================================================
+           RESPONSIVE — small screens
+           ============================================================ */
+        @media (max-width: 580px) {
+            body { font-size: 17px; }
+            header h1 { font-size: 1.75rem; }
+            .risk-badge { font-size: 1.2rem; padding: 15px 20px; }
+            .btn { width: 100%; text-align: center; }
+            .button-row { flex-direction: column; }
+            .card, .advice-card { padding: 20px 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+    <header>
+        <h1>Scam Email Detector</h1>
+        <p class="subtitle">Paste an email below and click <strong>Analyse Email</strong> to check it for warning signs.</p>
+        <p class="shortcut-hint">Tip: you can also press <kbd>Ctrl+Enter</kbd> (or <kbd>Cmd+Enter</kbd> on Mac) to analyse.</p>
+    </header>
+
+
+    <!-- ============================================================
+         INPUT SECTION
+         ============================================================ -->
+    <div class="card">
+        <label for="email-input">Paste the full email text here (including the subject line if you have it):</label>
+        <textarea
+            id="email-input"
+            placeholder="Paste email text here…"
+            aria-label="Email text to analyse"
+            spellcheck="false"
+        ></textarea>
+
+        <div class="button-row">
+            <button class="btn btn-primary" id="analyse-btn" onclick="analyseEmail()">
+                Analyse Email
+            </button>
+            <button class="btn btn-secondary" id="clear-btn" onclick="clearAll()">
+                Clear
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ============================================================
+         RESULTS — hidden until analysis is complete
+         ============================================================ -->
+    <section id="results" aria-live="polite" aria-label="Analysis results">
+
+        <!-- Risk badge -->
+        <div id="risk-badge-wrap"></div>
+
+        <!-- Suspicion score bar -->
+        <div class="card" id="score-card"></div>
+
+        <!-- List of detected red flags -->
+        <div class="card" id="flags-card"></div>
+
+        <!-- Email text with inline highlights (only shown when flags exist) -->
+        <div class="card" id="highlight-card" style="display:none;">
+            <h2>Email with Flagged Text Highlighted</h2>
+            <div class="legend" id="legend" aria-label="Highlight colour key"></div>
+            <div id="email-display" role="region" aria-label="Highlighted email text"></div>
+        </div>
+
+        <!-- What to do advice -->
+        <div id="advice-wrap"></div>
+
+    </section>
+
+</div><!-- /.container -->
+
+
+<footer>
+    <p>
+        This tool uses rule-based pattern matching and <strong>cannot guarantee</strong> detection of every scam.<br>
+        When in doubt, contact the organisation directly using contact details from their <strong>official website</strong> — not from the email.
+    </p>
+</footer>
+
+
+<!-- ================================================================
+     DETECTION ENGINE — pure vanilla JavaScript, no dependencies
+     ================================================================ -->
+<script>
+/* ----------------------------------------------------------------
+   1.  DETECTION RULES
+   ----------------------------------------------------------------
+   Each rule object contains:
+     id          – unique machine-readable key
+     category    – human-readable category name (shown in UI)
+     cssClass    – suffix for hl-<cssClass> highlight style
+     dotClass    – suffix for dot-<dotClass> coloured dot style
+     weight      – score points added per matched hit
+     maxHits     – cap on how many hits contribute to the score
+     patterns    – array of RegExp objects to test against the text
+     explanation – plain-English sentence explaining WHY this is suspicious
+   ---------------------------------------------------------------- */
+const RULES = [
+
+    /* --- Urgency / Threat language --- */
+    {
+        id:          'urgency',
+        category:    'Urgency / Threat Language',
+        cssClass:    'urgency',
+        dotClass:    'dot-urgency',
+        weight:      2,
+        maxHits:     4,
+        patterns: [
+            /\bact\s+now\b/gi,
+            /\burgent(ly)?\b/gi,
+            /\bimmediate\s+action\b/gi,
+            /\bimmediately\b/gi,
+            /\baccount\s+(has\s+been\s+)?(suspended|disabled|locked|closed|terminated)\b/gi,
+            /\baction\s+required\b/gi,
+            /\battention\s+required\b/gi,
+            /\blimited\s+time\b/gi,
+            /\bexpires?\s+(soon|today|immediately|in\s+\d+)\b/gi,
+            /\bdeadline\b/gi,
+            /\bfinal\s+notice\b/gi,
+            /\blast\s+chance\b/gi,
+            /\bwithin\s+\d+\s+hours?\b/gi,
+            /\byour\s+account\s+will\s+be\b/gi,
+            /\bsecurity\s+(alert|notice|warning)\b/gi,
+            /\bunusual\s+(activity|sign-?in|login)\b/gi,
+            /\bsuspicious\s+(activity|sign-?in|login)\b/gi,
+            /\brespond\s+(immediately|now|urgently|within)\b/gi,
+            /\bfailure\s+to\s+(respond|comply|verify|act)\b/gi,
+            /\byour\s+account\s+is\s+at\s+risk\b/gi,
+            /\bwarning[!:]/gi,
+        ],
+        explanation: 'Scammers manufacture urgency to stop you thinking clearly. Legitimate organisations rarely threaten instant account suspension or demand you act within hours.'
+    },
+
+    /* --- Financial lure / reward --- */
+    {
+        id:          'financial',
+        category:    'Financial Lure / Reward',
+        cssClass:    'financial',
+        dotClass:    'dot-financial',
+        weight:      3,
+        maxHits:     3,
+        patterns: [
+            /\byou\s+have\s+won\b/gi,
+            /\bclaim\s+(your\s+)?(prize|reward|winnings?|money|funds?|cash)\b/gi,
+            /\bwire\s+transfer\b/gi,
+            /\bgift\s+card(s)?\b/gi,
+            /\bitunes\s+(gift\s+)?card/gi,
+            /\bgoogle\s+play\s+(gift\s+)?card/gi,
+            /\bcryptocurrenc(y|ies)\b/gi,
+            /\bbitcoin\b/gi,
+            /\blotter(y|ies)\b/gi,
+            /\binheritance\b/gi,
+            /\b\d+\s*million\s+(dollars?|pounds?|euros?|usd|gbp)\b/gi,
+            /\bbeneficiar(y|ies)\b/gi,
+            /\bunclaimed\s+funds?\b/gi,
+            /\badvance\s+fee\b/gi,
+            /\bprocessing\s+fee\b/gi,
+            /\bwestern\s+union\b/gi,
+            /\bmoney\s+order\b/gi,
+            /\bcash\s+prize\b/gi,
+            /\bfree\s+(money|cash|gift|reward)\b/gi,
+            /\bprize\s+(notification|winner|draw|fund)\b/gi,
+            /\boverpayment\b/gi,
+            /\bcompensation\s+(of|fund|payment)\b/gi,
+            /\bcongratulations.{0,50}(won|selected|chosen|lucky|winner)/gi,
+            /\byou\s+(are|have\s+been)\s+(selected|chosen|awarded|entitled)\b/gi,
+        ],
+        explanation: 'Promises of unexpected money, prizes, or requests to pay fees upfront to receive a windfall are classic scam tactics. Real lotteries do not contact you unsolicited, and genuine windfalls never require advance payments.'
+    },
+
+    /* --- Personal information requests --- */
+    {
+        id:          'personal',
+        category:    'Personal Information Request',
+        cssClass:    'personal',
+        dotClass:    'dot-personal',
+        weight:      3,
+        maxHits:     3,
+        patterns: [
+            /\bconfirm\s+your\s+password\b/gi,
+            /\bbank\s+(account\s+)?details?\b/gi,
+            /\bsocial\s+security\s+(number|no\.?|#|num)\b/gi,
+            /\bssn\b/g,
+            /\bcredit\s+card\s+(number|details?|info)\b/gi,
+            /\bdebit\s+card\s+(number|details?|pin)\b/gi,
+            /\bcard\s+(number|details?|cvv|cvc|security\s+code)\b/gi,
+            /\bdate\s+of\s+birth\b/gi,
+            /\bmother'?s\s+maiden\s+name\b/gi,
+            /\bpin\s+(number|code)\b/gi,
+            /\brouting\s+number\b/gi,
+            /\blogin\s+(credentials?|details?|info)\b/gi,
+            /\busername\s+and\s+password\b/gi,
+            /\benter\s+your\s+password\b/gi,
+            /\bverify\s+your\s+(identity|account|details?|info)\b/gi,
+            /\bupdate\s+your\s+(account\s+)?(info|details?|records?|data)\b/gi,
+            /\bconfirm\s+your\s+(identity|account|details?|info|personal)\b/gi,
+            /\bprovide\s+your\s+(personal|banking|financial|account)\b/gi,
+            /\bnational\s+insurance\s+(number|no\.?|num)\b/gi,
+            /\btax\s+(id|identification)\s+(number|no\.?)\b/gi,
+            /\bpassport\s+(number|details?|no\.?)\b/gi,
+        ],
+        explanation: 'Legitimate banks, government agencies, and companies will never ask for your full password, PIN, or sensitive financial details by email. This is a major red flag for a phishing attempt.'
+    },
+
+    /* --- Suspicious links / URLs --- */
+    {
+        id:          'url',
+        category:    'Suspicious Link / URL',
+        cssClass:    'url',
+        dotClass:    'dot-url',
+        weight:      4,
+        maxHits:     3,
+        patterns: [
+            /* Raw IP-address URLs — e.g. http://192.168.0.1/login */
+            /https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/gi,
+
+            /* Common URL shorteners */
+            /https?:\/\/(www\.)?(bit\.ly|tinyurl\.com|goo\.gl|ow\.ly|t\.co|is\.gd|buff\.ly|ift\.tt|rb\.gy|shorturl\.at|cutt\.ly|tiny\.cc|rebrand\.ly|bl\.ink|snip\.ly|short\.io|po\.st)\//gi,
+
+            /* Brand name preceded by a hyphen: paypal-secure.com, amazon-login.net */
+            /https?:\/\/[a-z0-9-]*-(paypal|amazon|apple|microsoft|google|netflix|barclays|lloyds|hsbc|natwest|halifax|santander|ebay|facebook|instagram|hmrc|irs|dvla|gov)[a-z0-9.-]*\.[a-z]{2,}\//gi,
+
+            /* Brand name followed by a hyphen: paypallogin-secure.com */
+            /https?:\/\/(paypal|amazon|apple|microsoft|google|netflix|barclays|lloyds|hsbc|natwest|halifax|santander|ebay|facebook|instagram|hmrc|irs|dvla)[a-z0-9]+-[a-z0-9-]+\.[a-z]{2,}\//gi,
+
+            /* Login/secure/update/verify sub-domains or prefixes */
+            /https?:\/\/(secure-|login-|update-|account-|verify-|signin-|webscr-|auth-)[a-z0-9.-]+\.[a-z]{2,}\//gi,
+
+            /* Suspicious new TLDs combined with brand keywords */
+            /https?:\/\/[a-z0-9-]*(paypal|amazon|apple|microsoft|google|netflix|bank|account|secure|login|verify)[a-z0-9-]*\.(xyz|top|club|online|site|info|tk|ml|ga|cf|gq|buzz|uno|pw)\//gi,
+        ],
+        explanation: 'This email contains links that look suspicious. Scammers disguise malicious websites using raw IP addresses, URL shorteners, or domain names crafted to resemble trusted brands. Never click a link in a suspicious email — always type the organisation\'s address into your browser directly.'
+    },
+
+    /* --- Formatting anomalies --- */
+    {
+        id:          'format',
+        category:    'Suspicious Formatting',
+        cssClass:    'format',
+        dotClass:    'dot-format',
+        weight:      1,
+        maxHits:     3,
+        patterns: [
+            /* Three or more consecutive exclamation marks */
+            /!{3,}/g,
+
+            /* Three or more consecutive question marks */
+            /\?{3,}/g,
+
+            /* Runs of 6+ capital letters (likely ALL-CAPS shouting) */
+            /\b[A-Z]{6,}\b/g,
+
+            /* Currency amounts written in an informal/alarming way */
+            /\$\s*\d[\d,]*,\d{3}/g,
+        ],
+        explanation: 'Scam emails frequently use excessive capitalisation, strings of exclamation marks, and over-the-top formatting to create a sense of panic. Professional organisations maintain consistent, calm formatting.'
+    }
+
+]; /* end RULES */
+
+
+/* ----------------------------------------------------------------
+   2.  ADVICE TEXT — shown at the bottom of results
+   ---------------------------------------------------------------- */
+const ADVICE = {
+    high: {
+        cssClass: 'advice-high',
+        title:    'What To Do — This looks like a scam',
+        items: [
+            'Do <strong>not</strong> click any links or open any attachments in this email.',
+            'Do <strong>not</strong> reply to the sender, and do not call any phone number given in the email.',
+            'Do <strong>not</strong> provide any passwords, personal information, or payment details.',
+            'If the email appears to be from a bank or company you use, contact them directly using a phone number or web address that you already know — not one from this email.',
+            'Report the email as phishing/spam in your email client (usually a right-click option or a toolbar button marked "Report phishing").',
+            '<strong>UK users:</strong> Forward the email to <strong>report@phishing.gov.uk</strong>.<br><strong>US users:</strong> Forward it to <strong>phishing-report@us-cert.gov</strong>.',
+            'If you have <em>already</em> clicked a link or entered any details, contact your bank immediately and change any affected passwords.'
+        ]
+    },
+    medium: {
+        cssClass: 'advice-medium',
+        title:    'What To Do — Proceed with caution',
+        items: [
+            'This email contains some warning signs — treat it with caution before taking any action.',
+            'Do <strong>not</strong> click links directly. Instead, visit the company\'s official website by typing the address into your browser.',
+            'Do <strong>not</strong> provide passwords, PINs, or financial details in response to this email.',
+            'If the email appears to be from someone you know, verify by calling them on a number you already have — not one supplied in the email.',
+            'Consider reporting the email as suspicious to your email provider.',
+            'If anything about this email still makes you uneasy, trust your instincts and seek advice before acting.'
+        ]
+    },
+    low: {
+        cssClass: 'advice-low',
+        title:    'What To Do — Looks relatively safe',
+        items: [
+            'No major red flags were detected, but always stay alert — scammers constantly refine their techniques.',
+            'Before clicking any link, hover over it first to see the real destination address.',
+            'Never share passwords or sensitive financial information by email, even with senders you trust.',
+            'If the email asks you to do something unexpected, verify with the sender by phone using a number you already know.'
+        ]
+    }
+};
+
+
+/* ----------------------------------------------------------------
+   3.  UTILITY FUNCTIONS
+   ---------------------------------------------------------------- */
+
+/**
+ * Escape HTML special characters to prevent XSS when inserting
+ * user-supplied text into the DOM via innerHTML.
+ */
+function escapeHtml(str) {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/**
+ * Build an HTML string from plain text, wrapping matched ranges in
+ * <mark> tags with the appropriate highlight class.
+ *
+ * Overlapping ranges are merged; the first-encountered category wins.
+ *
+ * @param {string} text   - Original plain text
+ * @param {Array}  ranges - [{start, end, cssClass, category}, …]
+ * @returns {string} Safe HTML string
+ */
+function buildHighlightedHtml(text, ranges) {
+    if (ranges.length === 0) return escapeHtml(text);
+
+    /* Sort ascending by start position; longer matches win on ties */
+    ranges.sort((a, b) => a.start - b.start || b.end - a.end);
+
+    /* Merge overlapping / adjacent ranges, preserving first category */
+    const merged = [];
+    for (const r of ranges) {
+        if (!merged.length) {
+            merged.push({ ...r });
+        } else {
+            const prev = merged[merged.length - 1];
+            if (r.start < prev.end) {
+                /* Overlap — extend without changing the category colour */
+                prev.end = Math.max(prev.end, r.end);
+            } else {
+                merged.push({ ...r });
+            }
+        }
+    }
+
+    /* Assemble output */
+    let html = '';
+    let pos  = 0;
+    for (const r of merged) {
+        html += escapeHtml(text.slice(pos, r.start));
+        html += `<mark class="hl-${r.cssClass}" title="${escapeHtml(r.category)}">`
+              + escapeHtml(text.slice(r.start, r.end))
+              + `</mark>`;
+        pos = r.end;
+    }
+    html += escapeHtml(text.slice(pos));
+    return html;
+}
+
+
+/* ----------------------------------------------------------------
+   4.  CORE ANALYSIS FUNCTION
+   ---------------------------------------------------------------- */
+
+/**
+ * Run all detection rules against `text`.
+ *
+ * @param  {string} text - Raw email text
+ * @returns {{totalScore, risk, flagsFound, allRanges}}
+ */
+function analyseText(text) {
+    let totalScore = 0;
+    const flagsFound = [];  /* {rule, matchCount, matchedTexts, scoreContribution} */
+    const allRanges  = [];  /* {start, end, cssClass, category} */
+
+    for (const rule of RULES) {
+        const matchedTexts = new Set();
+        let hitCount = 0;
+
+        for (const pattern of rule.patterns) {
+            /* Always reset lastIndex so reused global regexes start fresh */
+            pattern.lastIndex = 0;
+            let match;
+            while ((match = pattern.exec(text)) !== null) {
+                hitCount++;
+                matchedTexts.add(match[0].trim());
+                allRanges.push({
+                    start:    match.index,
+                    end:      match.index + match[0].length,
+                    cssClass: rule.cssClass,
+                    category: rule.category
+                });
+                /* Guard against zero-length match infinite loops */
+                if (match[0].length === 0) pattern.lastIndex++;
+            }
+        }
+
+        if (hitCount > 0) {
+            const cappedHits      = Math.min(hitCount, rule.maxHits);
+            const scoreContribution = cappedHits * rule.weight;
+            totalScore += scoreContribution;
+            flagsFound.push({ rule, matchCount: hitCount, matchedTexts, scoreContribution });
+        }
+    }
+
+    /* Classify risk level based on accumulated score */
+    const risk = totalScore >= 10 ? 'high'
+               : totalScore >= 4  ? 'medium'
+               :                    'low';
+
+    return { totalScore, risk, flagsFound, allRanges };
+}
+
+
+/* ----------------------------------------------------------------
+   5.  RENDER FUNCTIONS
+   ---------------------------------------------------------------- */
+
+/** Render the coloured risk badge */
+function renderBadge(risk) {
+    const CONFIG = {
+        high:   { icon: '⚠',  label: 'HIGH RISK — Likely a Scam',   cls: 'risk-high'   },
+        medium: { icon: '⚡', label: 'MEDIUM RISK — Use Caution',    cls: 'risk-medium' },
+        low:    { icon: '✓',  label: 'LOW RISK — Looks Relatively Safe', cls: 'risk-low' }
+    };
+    const c = CONFIG[risk];
+    document.getElementById('risk-badge-wrap').innerHTML =
+        `<div class="risk-badge ${c.cls}" role="status" aria-label="Risk level: ${c.label}">
+            <span class="badge-icon" aria-hidden="true">${c.icon}</span>
+            ${c.label}
+        </div>`;
+}
+
+/** Render the score bar */
+function renderScoreBar(totalScore, risk, flagsFound) {
+    const MAX_DISPLAY = 30; /* Upper bound for the bar; real scores can exceed this */
+    const pct = Math.min(100, Math.round((totalScore / MAX_DISPLAY) * 100));
+    const barColor = risk === 'high'   ? '#b03020'
+                   : risk === 'medium' ? '#e09000'
+                   :                    '#22a355';
+    const categoryWord = flagsFound.length === 1 ? 'category' : 'categories';
+
+    document.getElementById('score-card').innerHTML =
+        `<div class="score-label">
+            Suspicion score: <strong>${totalScore}</strong>
+            &nbsp;·&nbsp; ${flagsFound.length} ${categoryWord} flagged
+        </div>
+        <div class="score-bar-track" role="img" aria-label="Score bar at ${pct}%">
+            <div class="score-bar-fill" style="width:${pct}%; background:${barColor};"></div>
+        </div>`;
+}
+
+/** Render the list of detected red flags */
+function renderFlags(flagsFound) {
+    const card = document.getElementById('flags-card');
+
+    if (flagsFound.length === 0) {
+        card.innerHTML =
+            `<h2>Red Flags Found</h2>
+             <p style="color:#1a6636; font-weight:bold;">
+                No red flags detected in this email.
+             </p>`;
+        return;
+    }
+
+    let html = `<h2>Red Flags Found (${flagsFound.length})</h2>`;
+
+    for (const flag of flagsFound) {
+        /* Show up to 7 distinct matched phrases as chips */
+        const textsArray = [...flag.matchedTexts];
+        const chipsHtml  = textsArray.slice(0, 7)
+            .map(t => `<span class="match-chip">${escapeHtml(t)}</span>`)
+            .join('');
+        const overflow   = textsArray.length > 7
+            ? `<span class="match-chip">+${textsArray.length - 7} more</span>`
+            : '';
+
+        html +=
+            `<div class="flag-item">
+                <div class="flag-dot ${flag.rule.dotClass}" aria-hidden="true"></div>
+                <div>
+                    <div class="flag-category">${escapeHtml(flag.rule.category)}</div>
+                    <div class="flag-explanation">${flag.rule.explanation}</div>
+                    <div class="flag-matches">
+                        <span class="flag-matches-label">Detected:</span>
+                        ${chipsHtml}${overflow}
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    card.innerHTML = html;
+}
+
+/** Render the highlighted email body, with a colour legend */
+function renderHighlightedEmail(text, flagsFound, allRanges) {
+    const highlightCard = document.getElementById('highlight-card');
+
+    if (allRanges.length === 0) {
+        /* Nothing to highlight — hide this card */
+        highlightCard.style.display = 'none';
+        return;
+    }
+
+    /* Swatch colours must match the CSS mark rules above */
+    const SWATCH = {
+        urgency:   { bg: '#fdebd0', border: '#e09000' },
+        financial: { bg: '#fadbd8', border: '#c0392b' },
+        personal:  { bg: '#e8daef', border: '#8e44ad' },
+        url:       { bg: '#d6eaf8', border: '#2471a3' },
+        format:    { bg: '#d1f2eb', border: '#148f77' }
+    };
+
+    /* Build legend from the categories that were actually flagged */
+    const usedCategories = flagsFound.map(f => ({
+        cssClass: f.rule.cssClass,
+        category: f.rule.category
+    }));
+
+    const legendHtml = usedCategories.map(c => {
+        const s = SWATCH[c.cssClass] || { bg: '#eee', border: '#999' };
+        return `<span class="legend-item">
+                    <span class="legend-swatch"
+                          style="background:${s.bg}; outline:1.5px solid ${s.border};"
+                          aria-hidden="true"></span>
+                    ${escapeHtml(c.category)}
+                </span>`;
+    }).join('');
+
+    document.getElementById('legend').innerHTML       = legendHtml;
+    document.getElementById('email-display').innerHTML = buildHighlightedHtml(text, allRanges);
+    highlightCard.style.display = 'block';
+}
+
+/** Render the "What to do" advice section */
+function renderAdvice(risk) {
+    const advice = ADVICE[risk];
+    const itemsHtml = advice.items
+        .map(item => `<li>${item}</li>`)
+        .join('');
+
+    document.getElementById('advice-wrap').innerHTML =
+        `<div class="advice-card ${advice.cssClass}">
+            <h2>${advice.title}</h2>
+            <ul>${itemsHtml}</ul>
+        </div>`;
+}
+
+
+/* ----------------------------------------------------------------
+   6.  ORCHESTRATOR — ties everything together
+   ---------------------------------------------------------------- */
+
+/** Called by the Analyse button (and Ctrl+Enter shortcut) */
+function analyseEmail() {
+    const text = document.getElementById('email-input').value.trim();
+
+    if (!text) {
+        alert('Please paste some email text before analysing.');
+        document.getElementById('email-input').focus();
+        return;
+    }
+
+    /* Run the detection engine */
+    const result = analyseText(text);
+
+    /* Render each section */
+    renderBadge(result.risk);
+    renderScoreBar(result.totalScore, result.risk, result.flagsFound);
+    renderFlags(result.flagsFound);
+    renderHighlightedEmail(text, result.flagsFound, result.allRanges);
+    renderAdvice(result.risk);
+
+    /* Show the results panel and scroll to it */
+    const resultsEl = document.getElementById('results');
+    resultsEl.style.display = 'block';
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/** Called by the Clear button */
+function clearAll() {
+    document.getElementById('email-input').value = '';
+    const resultsEl = document.getElementById('results');
+    resultsEl.style.display = 'none';
+    document.getElementById('email-input').focus();
+    /* Scroll back to top */
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ----------------------------------------------------------------
+   7.  KEYBOARD SHORTCUT  Ctrl+Enter / Cmd+Enter to analyse
+   ---------------------------------------------------------------- */
+document.getElementById('email-input').addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        analyseEmail();
+    }
+});
+
+</script>
+</body>
+</html>
