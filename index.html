@@ -465,6 +465,89 @@
         mark.hl-format    { background: rgba(0,255,157,0.15);   color: #50ffb8; outline: 1px solid rgba(0,255,157,0.4); }
 
         /* ============================================================
+           SENDER ADDRESS INPUT & RESULTS
+           ============================================================ */
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+
+        .input-group { display: flex; flex-direction: column; }
+
+        .input-group label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .input-group .hint {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+
+        #sender-input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+        #sender-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+        #sender-input:focus {
+            outline: none;
+            border-color: var(--cyan);
+            box-shadow: 0 0 0 3px rgba(0,212,255,0.15);
+        }
+
+        /* Address flag pills */
+        .addr-flag {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(163,177,198,0.1);
+        }
+
+        .addr-flag:last-child { border-bottom: none; }
+
+        .dot-address { background: #ff4a3a; box-shadow: 0 0 6px rgba(255,74,58,0.6); }
+
+        .addr-parsed {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .addr-part { color: var(--text-muted); }
+        .addr-part strong { color: var(--text); }
+        .addr-part .addr-value {
+            font-family: 'Courier New', monospace;
+            color: var(--cyan);
+        }
+
+        @media (max-width: 680px) {
+            .input-row { grid-template-columns: 1fr; }
+        }
+
+        /* ============================================================
            ADVICE SECTION
            ============================================================ */
         .advice-card {
@@ -644,13 +727,34 @@
          INPUT SECTION
          ============================================================ -->
     <div class="card">
-        <label for="email-input">Paste the full email text here (including the subject line if you have it):</label>
-        <textarea
-            id="email-input"
-            placeholder="Paste email text here…"
-            aria-label="Email text to analyse"
-            spellcheck="false"
-        ></textarea>
+        <!-- Two-column: sender address + email body -->
+        <div class="input-row">
+            <div class="input-group">
+                <label for="sender-input">"From" address:</label>
+                <input
+                    type="text"
+                    id="sender-input"
+                    placeholder="e.g. support@paypa1.com"
+                    aria-label="Sender email address"
+                    autocomplete="off"
+                    spellcheck="false"
+                />
+                <p class="hint">
+                    Paste the full "From" field — display name and address.<br>
+                    e.g. <em>PayPal Support &lt;noreply@gmail.com&gt;</em>
+                </p>
+            </div>
+            <div class="input-group">
+                <label for="email-input">Email body (paste full text here):</label>
+                <textarea
+                    id="email-input"
+                    placeholder="Paste email text here…"
+                    aria-label="Email text to analyse"
+                    spellcheck="false"
+                    style="min-height:160px;"
+                ></textarea>
+            </div>
+        </div>
 
         <div class="button-row">
             <button class="btn btn-primary" id="analyse-btn" onclick="analyseEmail()">
@@ -670,6 +774,7 @@
 
         <div id="risk-badge-wrap"></div>
         <div class="card" id="score-card"></div>
+        <div class="card" id="address-card" style="display:none;"></div>
         <div class="card" id="flags-card"></div>
 
         <div class="card" id="highlight-card" style="display:none;">
@@ -879,7 +984,210 @@ const RULES = [
 
 
 /* ----------------------------------------------------------------
-   2.  ADVICE TEXT
+   2.  SENDER ADDRESS ANALYSIS
+   ----------------------------------------------------------------
+   Checks run against the "From" field the user pastes in.
+   Each check returns { found, detail } and carries a weight that
+   feeds into the same overall suspicion score.
+   ---------------------------------------------------------------- */
+
+/** Well-known brands that should NEVER email from a free provider */
+const OFFICIAL_BRANDS = [
+    'paypal','amazon','apple','microsoft','google','netflix','barclays',
+    'lloyds','hsbc','natwest','halifax','santander','ebay','facebook',
+    'instagram','hmrc','dvla','irs','nhs','royal mail','royalmail',
+    'dhl','fedex','ups','bt','o2','vodafone','three','ee',
+    'virgin','sky','talktalk','spotify','dropbox','linkedin','twitter',
+    'tesco','asda','sainsbury','argos','currys','pcworld','ao.com',
+    'companies house','gov.uk','government','inland revenue',
+];
+
+/** Free / consumer email providers */
+const FREE_PROVIDERS = [
+    'gmail.com','yahoo.com','yahoo.co.uk','yahoo.fr','hotmail.com',
+    'hotmail.co.uk','hotmail.fr','outlook.com','live.com','live.co.uk',
+    'msn.com','aol.com','icloud.com','me.com','mac.com',
+    'protonmail.com','proton.me','mail.com','yandex.com','yandex.ru',
+    'gmx.com','gmx.co.uk','btinternet.com','virginmedia.com',
+];
+
+/** Suspicious new / cheap TLDs often used by scammers */
+const DODGY_TLDS = [
+    'xyz','top','club','online','site','info','tk','ml','ga','cf',
+    'gq','buzz','uno','pw','icu','cyou','cam','rest','cfd','monster',
+];
+
+/**
+ * Parse a "From" field into its parts.
+ * Handles formats:
+ *   plain@domain.com
+ *   Display Name <plain@domain.com>
+ *   "Display Name" <plain@domain.com>
+ *
+ * @param {string} raw
+ * @returns {{ displayName:string, local:string, domain:string, tld:string, valid:boolean }}
+ */
+function parseSenderAddress(raw) {
+    raw = raw.trim();
+    let displayName = '';
+    let emailPart   = raw;
+
+    /* Extract display name + angle-bracket address if present */
+    const angleMatch = raw.match(/^(.*?)<([^>]+)>\s*$/);
+    if (angleMatch) {
+        displayName = angleMatch[1].replace(/["']/g, '').trim();
+        emailPart   = angleMatch[2].trim();
+    }
+
+    const atIdx = emailPart.lastIndexOf('@');
+    if (atIdx < 1) return { displayName, local: emailPart, domain: '', tld: '', valid: false };
+
+    const local  = emailPart.slice(0, atIdx).toLowerCase();
+    const domain = emailPart.slice(atIdx + 1).toLowerCase();
+    const tld    = domain.split('.').pop();
+
+    return { displayName: displayName.toLowerCase(), local, domain, tld, valid: true };
+}
+
+/**
+ * Run all sender-address checks.
+ * @param {string} rawSender
+ * @returns {{ addressScore:number, addressFlags:Array }}
+ */
+function analyseAddress(rawSender) {
+    const raw = rawSender.trim();
+    if (!raw) return { addressScore: 0, addressFlags: [], parsed: null };
+
+    const p = parseSenderAddress(raw);
+    const addressFlags = [];
+
+    /* Helper — push a flag */
+    function flag(label, explanation, weight, detail) {
+        addressFlags.push({ label, explanation, weight, detail });
+    }
+
+    /* ---- Check 1: Free provider used for an "official" brand ---- */
+    if (p.valid && FREE_PROVIDERS.includes(p.domain)) {
+        const allText = p.displayName + ' ' + p.local;
+        const matchedBrand = OFFICIAL_BRANDS.find(b => allText.includes(b));
+        if (matchedBrand) {
+            flag(
+                'Free email provider impersonating a trusted brand',
+                `The sender claims to be "${matchedBrand}" but the email comes from ${p.domain} — a free consumer service. `
+                + `${matchedBrand.charAt(0).toUpperCase() + matchedBrand.slice(1)} would always email you from their own domain, never from Gmail, Hotmail, or similar.`,
+                6,
+                `Sender domain: ${p.domain}`
+            );
+        }
+    }
+
+    /* ---- Check 2: Numbers replacing letters in domain (l33tspeak) ---- */
+    /* e.g. paypa1.com, g00gle.com, micros0ft.com, arnazon.com */
+    const leetDomain = p.domain.replace(/0/g,'o').replace(/1/g,'l').replace(/3/g,'e').replace(/4/g,'a').replace(/5/g,'s').replace(/rn/g,'m');
+    if (p.valid && leetDomain !== p.domain) {
+        const matchedBrand = OFFICIAL_BRANDS.find(b => leetDomain.includes(b) && !p.domain.includes(b));
+        if (matchedBrand) {
+            flag(
+                'Domain uses look-alike characters to fake a brand',
+                `The domain "${p.domain}" uses numbers or substituted letters to mimic "${leetDomain}". `
+                + `This is a classic trick — at a glance it looks like the real address, but it is not.`,
+                6,
+                `Spoofed domain: ${p.domain}`
+            );
+        }
+    }
+
+    /* ---- Check 3: Brand name + extra words in domain ---- */
+    /* e.g. paypal-support.com, amazon-helpdesk.net, microsoft-security.org */
+    if (p.valid) {
+        const matchedBrand = OFFICIAL_BRANDS.find(b => {
+            /* Domain contains the brand but domain IS NOT exactly the brand's real domain */
+            return p.domain.includes(b.replace(/\s/g,'')) && p.domain !== b.replace(/\s/g,'') + '.com'
+                && p.domain !== b.replace(/\s/g,'') + '.co.uk'
+                && p.domain !== b.replace(/\s/g,'') + '.org';
+        });
+        /* Only flag if domain also has a hyphen, extra word, or unusual TLD */
+        if (matchedBrand && (p.domain.includes('-') || DODGY_TLDS.includes(p.tld))) {
+            flag(
+                'Domain spoofs a brand name with extra words',
+                `The domain "${p.domain}" includes the name of a well-known brand but adds extra words or hyphens. `
+                + `Scammers register domains like "amazon-support.net" or "paypal-secure.xyz" to trick people. The real company would use their exact official domain.`,
+                5,
+                `Suspicious domain: ${p.domain}`
+            );
+        }
+    }
+
+    /* ---- Check 4: Suspicious TLD ---- */
+    if (p.valid && DODGY_TLDS.includes(p.tld)) {
+        flag(
+            'Suspicious domain extension (TLD)',
+            `The email comes from a ".${p.tld}" address. Extensions like .xyz, .top, .online, and .tk are very cheap to register and are heavily used in scam and phishing campaigns. Legitimate businesses almost always use .com, .co.uk, .org, or a recognised country code.`,
+            3,
+            `Domain: ${p.domain}`
+        );
+    }
+
+    /* ---- Check 5: Display name says one brand, domain is another ---- */
+    if (p.valid && p.displayName) {
+        const nameContainsBrand  = OFFICIAL_BRANDS.find(b => p.displayName.includes(b));
+        const domainContainsBrand = nameContainsBrand && p.domain.includes(nameContainsBrand.replace(/\s/g,''));
+        if (nameContainsBrand && !domainContainsBrand && !FREE_PROVIDERS.includes(p.domain)) {
+            flag(
+                'Display name and email domain do not match',
+                `The sender's display name says "${p.displayName}" but the actual email domain is "${p.domain}". `
+                + `Anyone can set any display name they like — the domain after the @ is what really matters. These not matching is a major warning sign.`,
+                5,
+                `Name says: ${p.displayName} | Domain is: ${p.domain}`
+            );
+        }
+    }
+
+    /* ---- Check 6: Gibberish / random-looking local part ---- */
+    /* Flag if local part is 8+ chars and looks random (high ratio of digits + consecutive consonants) */
+    if (p.valid && p.local.length >= 6) {
+        const digitRatio     = (p.local.match(/\d/g) || []).length / p.local.length;
+        const consonantRuns  = (p.local.match(/[bcdfghjklmnpqrstvwxyz]{4,}/gi) || []).length;
+        if (digitRatio > 0.45 || consonantRuns >= 2) {
+            flag(
+                'Randomly generated sender address',
+                `The local part of the address ("${p.local}") looks randomly generated rather than being a real person's or department's name. Scammers often use auto-generated addresses to avoid spam filters.`,
+                2,
+                `Local part: ${p.local}`
+            );
+        }
+    }
+
+    /* ---- Check 7: Subdomain used to hide the real domain ---- */
+    /* e.g. paypal.com.malicious-site.xyz — real domain is malicious-site.xyz */
+    if (p.valid) {
+        const parts = p.domain.split('.');
+        if (parts.length >= 3) {
+            /* The "effective" registered domain is last two parts */
+            const registeredDomain = parts.slice(-2).join('.');
+            const subdomain        = parts.slice(0, -2).join('.');
+            /* If the subdomain contains a known brand but registered domain does not */
+            const brandInSub  = OFFICIAL_BRANDS.find(b => subdomain.includes(b.replace(/\s/g,'')));
+            const brandInRoot = brandInSub && registeredDomain.includes(brandInSub.replace(/\s/g,''));
+            if (brandInSub && !brandInRoot) {
+                flag(
+                    'Brand name hidden in subdomain to disguise real domain',
+                    `The address uses "${p.domain}" where "${brandInSub}" appears in the subdomain, but the actual registered domain is "${registeredDomain}". `
+                    + `This is a deceptive trick — your email client might show the brand name prominently while the real destination is a completely different site.`,
+                    6,
+                    `Real domain: ${registeredDomain} | Subdomain trick: ${subdomain}`
+                );
+            }
+        }
+    }
+
+    const addressScore = addressFlags.reduce((sum, f) => sum + f.weight, 0);
+    return { addressScore, addressFlags, parsed: p };
+}
+
+
+/* ----------------------------------------------------------------
+   3.  ADVICE TEXT
    ---------------------------------------------------------------- */
 const ADVICE = {
     high: {
@@ -1033,18 +1341,21 @@ function renderBadge(risk) {
         </div>`;
 }
 
-function renderScoreBar(totalScore, risk, flagsFound) {
+function renderScoreBar(totalScore, risk, flagsFound, addressFlags) {
     const MAX_DISPLAY  = 30;
     const pct          = Math.min(100, Math.round((totalScore / MAX_DISPLAY) * 100));
     const barColor     = risk === 'high'   ? 'linear-gradient(90deg,#ff4a3a,#ff6b5b)'
                        : risk === 'medium' ? 'linear-gradient(90deg,#e09000,#ffc845)'
                        :                    'linear-gradient(90deg,#00d4ff,#00ff9d)';
     const catWord      = flagsFound.length === 1 ? 'category' : 'categories';
+    const addrNote     = addressFlags && addressFlags.length > 0
+                       ? ` &nbsp;·&nbsp; ${addressFlags.length} sender address flag${addressFlags.length !== 1 ? 's' : ''}`
+                       : '';
 
     document.getElementById('score-card').innerHTML =
         `<div class="score-label">
             Suspicion score: <strong>${totalScore}</strong>
-            &nbsp;·&nbsp; ${flagsFound.length} ${catWord} flagged
+            &nbsp;·&nbsp; ${flagsFound.length} body ${catWord} flagged${addrNote}
         </div>
         <div class="score-bar-track" role="img" aria-label="Score bar at ${pct}%">
             <div class="score-bar-fill" style="width:${pct}%; background:${barColor};"></div>
@@ -1085,6 +1396,53 @@ function renderFlags(flagsFound) {
                 </div>
             </div>`;
     }
+    card.innerHTML = html;
+}
+
+function renderAddressFlags(addressResult) {
+    const card = document.getElementById('address-card');
+
+    if (!addressResult.parsed) {
+        /* No address entered — hide the card */
+        card.style.display = 'none';
+        return;
+    }
+
+    const { addressFlags, parsed: p } = addressResult;
+    card.style.display = 'block';
+
+    /* Build the parsed-address row */
+    const parsedHtml = p.valid
+        ? `<div class="addr-parsed">
+               <span class="addr-part">Display name: <span class="addr-value">${escapeHtml(p.displayName || '(none)')}</span></span>
+               <span class="addr-part">Local part: <span class="addr-value">${escapeHtml(p.local)}</span></span>
+               <span class="addr-part">Domain: <span class="addr-value">${escapeHtml(p.domain)}</span></span>
+               <span class="addr-part">TLD: <span class="addr-value">.${escapeHtml(p.tld)}</span></span>
+           </div>`
+        : `<p style="color:var(--text-muted);font-size:0.9rem;">Could not fully parse the address — make sure it includes an @ symbol.</p>`;
+
+    if (addressFlags.length === 0) {
+        card.innerHTML =
+            `<h2>Sender Address Analysis</h2>
+             ${parsedHtml}
+             <p style="color:var(--green);font-weight:600;">No obvious red flags in the sender address.</p>`;
+        return;
+    }
+
+    let html = `<h2>Sender Address Analysis (${addressFlags.length} flag${addressFlags.length !== 1 ? 's' : ''})</h2>${parsedHtml}`;
+
+    for (const f of addressFlags) {
+        html +=
+            `<div class="addr-flag">
+                <div class="flag-dot dot-address" aria-hidden="true"></div>
+                <div>
+                    <div class="flag-category">${escapeHtml(f.label)}</div>
+                    <div class="flag-explanation">${escapeHtml(f.explanation)}</div>
+                    ${f.detail ? `<div class="flag-matches"><span class="match-chip">${escapeHtml(f.detail)}</span></div>` : ''}
+                </div>
+            </div>`;
+    }
+
     card.innerHTML = html;
 }
 
@@ -1139,19 +1497,31 @@ function renderAdvice(risk) {
    6.  ORCHESTRATOR
    ---------------------------------------------------------------- */
 function analyseEmail() {
-    const text = document.getElementById('email-input').value.trim();
-    if (!text) {
-        alert('Please paste some email text before analysing.');
-        document.getElementById('email-input').focus();
+    const text   = document.getElementById('email-input').value.trim();
+    const sender = document.getElementById('sender-input').value.trim();
+
+    if (!text && !sender) {
+        alert('Please paste the email text and/or the "From" address before analysing.');
+        document.getElementById('sender-input').focus();
         return;
     }
 
-    const result = analyseText(text);
-    renderBadge(result.risk);
-    renderScoreBar(result.totalScore, result.risk, result.flagsFound);
-    renderFlags(result.flagsFound);
-    renderHighlightedEmail(text, result.flagsFound, result.allRanges);
-    renderAdvice(result.risk);
+    /* Run both engines */
+    const bodyResult    = text   ? analyseText(text)        : { totalScore: 0, risk: 'low', flagsFound: [], allRanges: [] };
+    const addressResult = sender ? analyseAddress(sender)   : { addressScore: 0, addressFlags: [], parsed: null };
+
+    /* Combine scores for final risk rating */
+    const combinedScore = bodyResult.totalScore + addressResult.addressScore;
+    const combinedRisk  = combinedScore >= 10 ? 'high'
+                        : combinedScore >= 4  ? 'medium'
+                        :                       'low';
+
+    renderBadge(combinedRisk);
+    renderScoreBar(combinedScore, combinedRisk, bodyResult.flagsFound, addressResult.addressFlags);
+    renderAddressFlags(addressResult);
+    renderFlags(bodyResult.flagsFound);
+    renderHighlightedEmail(text, bodyResult.flagsFound, bodyResult.allRanges);
+    renderAdvice(combinedRisk);
 
     const resultsEl = document.getElementById('results');
     resultsEl.style.display = 'block';
@@ -1159,9 +1529,10 @@ function analyseEmail() {
 }
 
 function clearAll() {
-    document.getElementById('email-input').value = '';
+    document.getElementById('sender-input').value = '';
+    document.getElementById('email-input').value  = '';
     document.getElementById('results').style.display = 'none';
-    document.getElementById('email-input').focus();
+    document.getElementById('sender-input').focus();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
