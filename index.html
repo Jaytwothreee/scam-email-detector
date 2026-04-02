@@ -3,246 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scam Email Detector — All Things Tech Wales</title>
-    <!-- Poppins font — matches the main site -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Scam Email Detector</title>
     <style>
-        /* ============================================================
-           DESIGN TOKENS — mirrored from allthingstech-wales.co.uk
-           ============================================================ */
-        :root {
-            --bg:           #0a192f;   /* Page background              */
-            --surface:      #0f2746;   /* Nav, footer, cards           */
-            --surface-alt:  #112952;   /* Slightly lifted card surface */
-            --cyan:         #00d4ff;   /* Primary accent               */
-            --green:        #00ff9d;   /* Secondary accent             */
-            --text:         #e6f1ff;   /* Primary text                 */
-            --text-muted:   #a3b1c6;   /* Secondary / muted text       */
-            --gold:         #ffd700;   /* Star ratings                 */
-            --border:       rgba(0,212,255,0.25);
-            --glow:         rgba(0,212,255,0.12);
-            --radius:       10px;
-            --transition:   0.25s ease;
-        }
-
         /* ============================================================
            RESET & BASE
            ============================================================ */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: Georgia, 'Times New Roman', serif;
             font-size: 18px;
             line-height: 1.65;
-            color: var(--text);
-            background: var(--bg);
+            color: #1a1a1a;
+            background: #f0f2f5;
             min-height: 100vh;
         }
 
-        a { color: var(--cyan); text-decoration: none; }
-        a:hover { text-decoration: underline; }
-
         /* ============================================================
-           NAVIGATION — matches main site
-           ============================================================ */
-        .nav {
-            background: var(--surface);
-            padding: 12px 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .nav-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text);
-            font-weight: 700;
-            font-size: 1.1rem;
-            text-decoration: none;
-        }
-
-        .brand:hover { text-decoration: none; color: var(--cyan); }
-
-        .brand-logo {
-            height: 48px;
-            width: auto;
-            display: block;
-        }
-
-        .menu {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .menu a {
-            padding: 8px 14px;
-            color: var(--text);
-            font-size: 0.95rem;
-            border-radius: 6px;
-            transition: color var(--transition), background var(--transition);
-        }
-
-        .menu a:hover { color: var(--cyan); background: rgba(0,212,255,0.08); text-decoration: none; }
-        .menu a.active { color: var(--cyan); }
-
-        /* Hamburger — mobile only */
-        .hamburger {
-            display: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-        }
-
-        .hamburger span {
-            display: block;
-            width: 26px;
-            height: 3px;
-            background: var(--cyan);
-            margin: 5px 0;
-            border-radius: 2px;
-            transition: transform 0.3s, opacity 0.3s;
-        }
-
-        .hamburger.is-active span:nth-child(1) { transform: rotate(45deg) translate(5px, 6px); }
-        .hamburger.is-active span:nth-child(2) { opacity: 0; }
-        .hamburger.is-active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
-
-        /* ============================================================
-           PAGE WRAPPER
+           LAYOUT
            ============================================================ */
         .container {
-            max-width: 900px;
+            max-width: 880px;
             margin: 0 auto;
-            padding: 0 20px 56px;
+            padding: 0 20px 48px;
         }
 
         /* ============================================================
-           PAGE HEADER
+           HEADER
            ============================================================ */
-        .page-header {
+        header {
             text-align: center;
-            padding: 52px 0 36px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 40px;
+            padding: 36px 0 28px;
+            border-bottom: 4px solid #b03020;
+            margin-bottom: 36px;
         }
 
-        .page-header .badge {
-            display: inline-block;
-            background: rgba(0,212,255,0.1);
-            border: 1px solid var(--cyan);
-            color: var(--cyan);
-            font-size: 0.82rem;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            padding: 5px 14px;
-            border-radius: 20px;
-            margin-bottom: 16px;
-        }
-
-        .page-header h1 {
+        header h1 {
             font-size: 2.4rem;
-            font-weight: 700;
-            color: var(--cyan);
-            margin-bottom: 14px;
-            line-height: 1.2;
+            color: #b03020;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
         }
 
-        .page-header p {
-            color: var(--text-muted);
-            font-size: 1.05rem;
-            max-width: 560px;
-            margin: 0 auto 10px;
-        }
-
-        .page-header .shortcut-hint {
-            font-size: 0.88rem;
-            color: var(--text-muted);
-            opacity: 0.75;
-        }
-
-        kbd {
-            background: var(--surface-alt);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 1px 6px;
-            font-family: inherit;
-            font-size: 0.85rem;
+        header .subtitle {
+            color: #555;
+            font-size: 1.1rem;
         }
 
         /* ============================================================
-           CARD — shared panel style
+           CARD — shared white panel style
            ============================================================ */
         .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
+            background: #fff;
+            border-radius: 10px;
             padding: 28px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.09);
             margin-bottom: 24px;
-            box-shadow: 0 4px 20px var(--glow);
         }
 
         .card h2 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: var(--cyan);
-            margin-bottom: 18px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+            color: #1a1a1a;
         }
 
         /* ============================================================
            INPUT SECTION
            ============================================================ */
-        label[for="email-input"] {
+
+        /* Two-column layout: sender address left, email body right */
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+
+        .input-group { display: flex; flex-direction: column; }
+
+        .input-group label {
             display: block;
             font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: var(--text);
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+
+        .input-group .hint {
+            font-size: 0.82rem;
+            color: #777;
+            margin-top: 7px;
+            line-height: 1.5;
+        }
+
+        #sender-input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 1rem;
+            font-family: inherit;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            color: #1a1a1a;
+            background: #fafafa;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        #sender-input::placeholder { color: #aaa; }
+
+        #sender-input:focus {
+            outline: none;
+            border-color: #2471a3;
+            box-shadow: 0 0 0 3px rgba(36,113,163,0.18);
+            background: #fff;
         }
 
         #email-input {
             width: 100%;
-            min-height: 220px;
+            min-height: 180px;
             padding: 16px;
             font-size: 1rem;
-            font-family: 'Poppins', sans-serif;
-            background: var(--bg);
-            border: 1px solid var(--border);
+            font-family: inherit;
+            border: 2px solid #ccc;
             border-radius: 8px;
-            color: var(--text);
             resize: vertical;
             line-height: 1.65;
-            transition: border-color var(--transition), box-shadow var(--transition);
+            color: #1a1a1a;
+            background: #fafafa;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-
-        #email-input::placeholder { color: var(--text-muted); opacity: 0.6; }
 
         #email-input:focus {
             outline: none;
-            border-color: var(--cyan);
-            box-shadow: 0 0 0 3px rgba(0,212,255,0.15);
+            border-color: #2471a3;
+            box-shadow: 0 0 0 3px rgba(36,113,163,0.18);
+            background: #fff;
         }
 
         .button-row {
             display: flex;
             gap: 14px;
-            margin-top: 18px;
             flex-wrap: wrap;
         }
 
@@ -250,40 +152,37 @@
            BUTTONS
            ============================================================ */
         .btn {
-            padding: 15px 34px;
-            font-size: 1rem;
-            font-weight: 700;
-            font-family: 'Poppins', sans-serif;
+            padding: 16px 36px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            font-family: inherit;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            transition: filter var(--transition), transform 0.1s;
+            transition: background 0.18s, transform 0.1s;
         }
 
-        .btn:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+        .btn:focus-visible { outline: 3px solid #2471a3; outline-offset: 3px; }
         .btn:active { transform: scale(0.97); }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--cyan), var(--green));
-            color: var(--bg);
+            background: #b03020;
+            color: #fff;
             min-width: 180px;
         }
 
-        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-primary:hover { background: #922818; }
 
         .btn-secondary {
-            background: transparent;
-            color: var(--text-muted);
-            border: 1px solid var(--border);
+            background: #ecf0f1;
+            color: #444;
+            border: 2px solid #ccc;
         }
 
-        .btn-secondary:hover {
-            border-color: var(--cyan);
-            color: var(--cyan);
-        }
+        .btn-secondary:hover { background: #dde1e3; }
 
         /* ============================================================
-           RESULTS WRAPPER
+           RESULTS WRAPPER — hidden until analysis runs
            ============================================================ */
         #results { display: none; }
 
@@ -296,54 +195,34 @@
             display: inline-flex;
             align-items: center;
             gap: 12px;
-            padding: 18px 28px;
-            border-radius: var(--radius);
-            font-size: 1.3rem;
-            font-weight: 700;
-            border-width: 1px;
+            padding: 18px 30px;
+            border-radius: 10px;
+            font-size: 1.45rem;
+            font-weight: bold;
+            border-width: 2px;
             border-style: solid;
         }
 
-        .badge-icon { font-size: 1.6rem; }
+        .risk-badge .badge-icon { font-size: 1.7rem; }
 
-        /* High — red-tinted */
-        .risk-high {
-            background: rgba(255,80,60,0.12);
-            color: #ff6b5b;
-            border-color: #ff4a3a;
-        }
-
-        /* Medium — amber-tinted */
-        .risk-medium {
-            background: rgba(255,180,0,0.1);
-            color: #ffc845;
-            border-color: #e09000;
-        }
-
-        /* Low — green-tinted, using brand green */
-        .risk-low {
-            background: rgba(0,255,157,0.1);
-            color: var(--green);
-            border-color: var(--green);
-        }
+        .risk-high   { background: #fae0db; color: #7d1f14; border-color: #b03020; }
+        .risk-medium { background: #fef6e4; color: #8a5800; border-color: #e09000; }
+        .risk-low    { background: #dff5e8; color: #1a6636; border-color: #22a355; }
 
         /* ============================================================
            SCORE BAR
            ============================================================ */
         .score-label {
-            font-size: 0.95rem;
-            color: var(--text-muted);
+            font-size: 1rem;
+            color: #444;
             margin-bottom: 10px;
         }
 
-        .score-label strong { color: var(--text); }
-
         .score-bar-track {
-            background: rgba(255,255,255,0.07);
+            background: #e8eaed;
             border-radius: 14px;
-            height: 18px;
+            height: 22px;
             overflow: hidden;
-            border: 1px solid var(--border);
         }
 
         .score-bar-fill {
@@ -360,56 +239,88 @@
             align-items: flex-start;
             gap: 16px;
             padding: 16px 0;
-            border-bottom: 1px solid rgba(163,177,198,0.1);
+            border-bottom: 1px solid #ecf0f1;
         }
 
         .flag-item:last-child { border-bottom: none; }
 
         .flag-dot {
-            width: 13px;
-            height: 13px;
+            width: 15px;
+            height: 15px;
             border-radius: 50%;
             flex-shrink: 0;
-            margin-top: 5px;
+            margin-top: 4px;
         }
 
-        .dot-urgency   { background: #e09000; box-shadow: 0 0 6px rgba(224,144,0,0.5); }
-        .dot-financial { background: #ff4a3a; box-shadow: 0 0 6px rgba(255,74,58,0.5); }
-        .dot-personal  { background: #b06aff; box-shadow: 0 0 6px rgba(176,106,255,0.5); }
-        .dot-url       { background: var(--cyan); box-shadow: 0 0 6px rgba(0,212,255,0.5); }
-        .dot-format    { background: var(--green); box-shadow: 0 0 6px rgba(0,255,157,0.4); }
+        .dot-urgency   { background: #e09000; }
+        .dot-financial { background: #c0392b; }
+        .dot-personal  { background: #8e44ad; }
+        .dot-url       { background: #2471a3; }
+        .dot-format    { background: #148f77; }
+        .dot-address   { background: #c0392b; }
 
         .flag-category {
-            font-weight: 600;
+            font-weight: bold;
             font-size: 1rem;
-            color: var(--text);
             margin-bottom: 5px;
         }
 
         .flag-explanation {
-            color: var(--text-muted);
-            font-size: 0.93rem;
-            line-height: 1.6;
+            color: #555;
+            font-size: 0.96rem;
         }
 
         .flag-matches {
-            margin-top: 9px;
-            font-size: 0.88rem;
-            color: var(--text-muted);
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #666;
         }
 
         .flag-matches-label { margin-right: 4px; }
 
         .match-chip {
             display: inline-block;
-            background: rgba(0,212,255,0.08);
-            border: 1px solid rgba(0,212,255,0.25);
+            background: #f0f2f5;
+            border: 1px solid #d5d8dc;
             border-radius: 4px;
             padding: 2px 9px;
             margin: 2px 2px 2px 0;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 0.86rem;
-            color: var(--cyan);
+            font-size: 0.88rem;
+            color: #333;
+        }
+
+        /* ============================================================
+           SENDER ADDRESS RESULTS
+           ============================================================ */
+        .addr-flag {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .addr-flag:last-child { border-bottom: none; }
+
+        /* Parsed address breakdown strip */
+        .addr-parsed {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .addr-part { color: #555; }
+        .addr-part .addr-value {
+            font-family: 'Courier New', monospace;
+            color: #2471a3;
+            font-weight: bold;
         }
 
         /* ============================================================
@@ -418,10 +329,9 @@
         .legend {
             display: flex;
             flex-wrap: wrap;
-            gap: 14px;
-            margin-bottom: 16px;
-            font-size: 0.9rem;
-            color: var(--text-muted);
+            gap: 12px;
+            margin-bottom: 14px;
+            font-size: 0.92rem;
         }
 
         .legend-item {
@@ -432,296 +342,105 @@
 
         .legend-swatch {
             display: inline-block;
-            width: 16px;
-            height: 16px;
-            border-radius: 3px;
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
             flex-shrink: 0;
         }
 
-        /* Email body — slightly lighter dark so highlights pop */
         #email-display {
-            font-size: 0.93rem;
-            line-height: 1.9;
+            font-size: 0.96rem;
+            line-height: 1.85;
             white-space: pre-wrap;
             word-break: break-word;
-            font-family: 'Poppins', sans-serif;
-            padding: 20px;
-            background: var(--bg);
+            font-family: inherit;
+            padding: 18px;
+            background: #fafafa;
             border-radius: 8px;
-            border: 1px solid var(--border);
-            color: var(--text);
+            border: 1px solid #e0e0e0;
         }
 
-        /* Highlight marks — each category has its own colour on dark bg */
         mark {
             border-radius: 3px;
             padding: 1px 3px;
-            font-weight: 700;
-            background: unset; /* override browser default */
+            font-weight: bold;
+            background: unset;
         }
 
-        mark.hl-urgency   { background: rgba(224,144,0,0.25);   color: #ffcc44; outline: 1px solid rgba(224,144,0,0.6); }
-        mark.hl-financial { background: rgba(255,74,58,0.2);    color: #ff8070; outline: 1px solid rgba(255,74,58,0.5); }
-        mark.hl-personal  { background: rgba(176,106,255,0.2);  color: #c89fff; outline: 1px solid rgba(176,106,255,0.5); }
-        mark.hl-url       { background: rgba(0,212,255,0.18);   color: #60e8ff; outline: 1px solid rgba(0,212,255,0.5); }
-        mark.hl-format    { background: rgba(0,255,157,0.15);   color: #50ffb8; outline: 1px solid rgba(0,255,157,0.4); }
-
-        /* ============================================================
-           SENDER ADDRESS INPUT & RESULTS
-           ============================================================ */
-        .input-row {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
-            align-items: start;
-            margin-bottom: 20px;
-        }
-
-        .input-group { display: flex; flex-direction: column; }
-
-        .input-group label {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 10px;
-        }
-
-        .input-group .hint {
-            font-size: 0.82rem;
-            color: var(--text-muted);
-            margin-top: 6px;
-            line-height: 1.5;
-        }
-
-        #sender-input {
-            width: 100%;
-            padding: 14px 16px;
-            font-size: 1rem;
-            font-family: 'Poppins', sans-serif;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            transition: border-color var(--transition), box-shadow var(--transition);
-        }
-
-        #sender-input::placeholder { color: var(--text-muted); opacity: 0.6; }
-
-        #sender-input:focus {
-            outline: none;
-            border-color: var(--cyan);
-            box-shadow: 0 0 0 3px rgba(0,212,255,0.15);
-        }
-
-        /* Address flag pills */
-        .addr-flag {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            padding: 14px 0;
-            border-bottom: 1px solid rgba(163,177,198,0.1);
-        }
-
-        .addr-flag:last-child { border-bottom: none; }
-
-        .dot-address { background: #ff4a3a; box-shadow: 0 0 6px rgba(255,74,58,0.6); }
-
-        .addr-parsed {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 14px;
-            padding: 12px 16px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-
-        .addr-part { color: var(--text-muted); }
-        .addr-part strong { color: var(--text); }
-        .addr-part .addr-value {
-            font-family: 'Courier New', monospace;
-            color: var(--cyan);
-        }
-
-        @media (max-width: 680px) {
-            .input-row { grid-template-columns: 1fr; }
-        }
+        mark.hl-urgency   { background: #fdebd0; color: #784212; outline: 1.5px solid #e09000; }
+        mark.hl-financial { background: #fadbd8; color: #641e16; outline: 1.5px solid #c0392b; }
+        mark.hl-personal  { background: #e8daef; color: #4a235a; outline: 1.5px solid #8e44ad; }
+        mark.hl-url       { background: #d6eaf8; color: #1a5276; outline: 1.5px solid #2471a3; }
+        mark.hl-format    { background: #d1f2eb; color: #0e6655; outline: 1.5px solid #148f77; }
 
         /* ============================================================
            ADVICE SECTION
            ============================================================ */
         .advice-card {
-            border-radius: var(--radius);
+            border-radius: 10px;
             padding: 28px 30px;
             margin-bottom: 24px;
-            border-width: 1px;
+            border-width: 2px;
             border-style: solid;
         }
 
-        .advice-card h2 {
-            font-size: 1.15rem;
-            font-weight: 700;
-            margin-bottom: 18px;
-        }
-
-        .advice-card ul { padding-left: 24px; }
+        .advice-card h2 { font-size: 1.25rem; margin-bottom: 16px; }
+        .advice-card ul { padding-left: 26px; }
 
         .advice-card li {
             margin-bottom: 11px;
             line-height: 1.65;
-            font-size: 0.97rem;
-            color: var(--text-muted);
         }
 
-        .advice-card li strong { color: var(--text); }
+        .advice-high   { background: #fae0db; border-color: #b03020; }
+        .advice-high h2 { color: #7d1f14; }
 
-        .advice-high {
-            background: rgba(255,74,58,0.07);
-            border-color: rgba(255,74,58,0.4);
-        }
+        .advice-medium { background: #fef6e4; border-color: #e09000; }
+        .advice-medium h2 { color: #8a5800; }
 
-        .advice-high h2 { color: #ff6b5b; }
-
-        .advice-medium {
-            background: rgba(255,180,0,0.07);
-            border-color: rgba(224,144,0,0.4);
-        }
-
-        .advice-medium h2 { color: #ffc845; }
-
-        .advice-low {
-            background: rgba(0,255,157,0.06);
-            border-color: rgba(0,255,157,0.35);
-        }
-
-        .advice-low h2 { color: var(--green); }
+        .advice-low    { background: #dff5e8; border-color: #22a355; }
+        .advice-low h2  { color: #1a6636; }
 
         /* ============================================================
-           FOOTER — matches main site
+           FOOTER
            ============================================================ */
-        .footer {
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            padding: 28px 24px 20px;
-            margin-top: 20px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .footer-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 20px;
-        }
-
-        .footer-brand {
-            font-weight: 700;
-            color: var(--text);
-            font-size: 1rem;
-            margin-bottom: 6px;
-        }
-
-        .footer-info a { color: var(--green); }
-        .footer-info a:hover { text-decoration: underline; }
-
-        .footer-copy {
+        footer {
             text-align: center;
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(163,177,198,0.15);
-            font-size: 0.83rem;
-            max-width: 1100px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .footer-disclaimer {
-            max-width: 500px;
-            font-size: 0.85rem;
-            line-height: 1.6;
+            padding: 28px 10px;
+            color: #888;
+            font-size: 0.9rem;
+            border-top: 1px solid #d5d8dc;
+            margin-top: 12px;
+            line-height: 1.7;
         }
 
         /* ============================================================
            RESPONSIVE
            ============================================================ */
-        @media (max-width: 768px) {
-            .hamburger { display: block; }
-
-            .menu {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0; right: 0;
-                background: var(--surface);
-                flex-direction: column;
-                padding: 1rem;
-                gap: 0.25rem;
-                text-align: center;
-                border-top: 1px solid var(--cyan);
-                z-index: 1000;
-            }
-
-            .menu.menu-open { display: flex; }
-
-            .nav { position: relative; } /* so absolute menu is positioned under it */
+        @media (max-width: 640px) {
+            .input-row { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 580px) {
             body { font-size: 17px; }
-            .page-header h1 { font-size: 1.75rem; }
-            .risk-badge { font-size: 1.1rem; padding: 14px 18px; }
+            header h1 { font-size: 1.75rem; }
+            .risk-badge { font-size: 1.2rem; padding: 15px 20px; }
             .btn { width: 100%; text-align: center; }
             .button-row { flex-direction: column; }
             .card, .advice-card { padding: 20px 18px; }
-            .footer-inner { flex-direction: column; align-items: center; text-align: center; }
         }
     </style>
 </head>
 <body>
 
-<!-- ============================================================
-     NAVIGATION — mirrors allthingstech-wales.co.uk
-     ============================================================ -->
-<nav class="nav" role="navigation" aria-label="Main navigation">
-    <div class="nav-inner">
-        <a href="https://www.allthingstech-wales.co.uk" class="brand" aria-label="All Things Tech Wales — home">
-            <img src="https://www.allthingstech-wales.co.uk/assets/img/logo.png"
-                 alt="All Things Tech Wales"
-                 class="brand-logo" />
-        </a>
-
-        <!-- Desktop menu -->
-        <div class="menu" id="main-menu" role="menubar">
-            <a href="https://www.allthingstech-wales.co.uk"          role="menuitem">Home</a>
-            <a href="https://www.allthingstech-wales.co.uk/#services" role="menuitem">Services</a>
-            <a href="https://www.allthingstech-wales.co.uk/#about"    role="menuitem">About</a>
-            <a href="#"                                               role="menuitem" class="active">📧 Scam Detector</a>
-            <a href="https://www.allthingstech-wales.co.uk/#contact"  role="menuitem">Contact</a>
-        </div>
-
-        <!-- Mobile hamburger -->
-        <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu" aria-expanded="false">
-            <span></span><span></span><span></span>
-        </button>
-    </div>
-</nav>
-
-
-<!-- ============================================================
-     MAIN CONTENT
-     ============================================================ -->
 <div class="container">
 
-    <!-- Page header -->
-    <header class="page-header">
-        <div class="badge">Free Tool — No Data Sent Anywhere</div>
-        <h1>📧 Scam Email Detector</h1>
-        <p>Paste a suspicious email below and we'll scan it for common scam warning signs — instantly, in your browser.</p>
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+    <header>
+        <h1>Scam Email Detector</h1>
+        <p class="subtitle">Paste a suspicious email below and click <strong>Analyse Email</strong> to check it for warning signs.</p>
     </header>
 
 
@@ -729,8 +448,9 @@
          INPUT SECTION
          ============================================================ -->
     <div class="card">
-        <!-- Two-column: sender address + email body -->
         <div class="input-row">
+
+            <!-- Left column: sender address -->
             <div class="input-group">
                 <label for="sender-input">"From" address:</label>
                 <input
@@ -746,6 +466,8 @@
                     e.g. <em>PayPal Support &lt;noreply@gmail.com&gt;</em>
                 </p>
             </div>
+
+            <!-- Right column: email body -->
             <div class="input-group">
                 <label for="email-input">Email body (paste full text here):</label>
                 <textarea
@@ -753,9 +475,9 @@
                     placeholder="Paste email text here…"
                     aria-label="Email text to analyse"
                     spellcheck="false"
-                    style="min-height:160px;"
                 ></textarea>
             </div>
+
         </div>
 
         <div class="button-row">
@@ -792,29 +514,11 @@
 </div><!-- /.container -->
 
 
-<!-- ============================================================
-     FOOTER — mirrors allthingstech-wales.co.uk
-     ============================================================ -->
-<footer class="footer">
-    <div class="footer-inner">
-        <div>
-            <img src="https://www.allthingstech-wales.co.uk/assets/img/logo.png"
-                 alt="All Things Tech Wales"
-                 style="height:40px; width:auto; margin-bottom:8px; display:block;" />
-            <div class="footer-info">
-                Llanelli, South Wales &nbsp;·&nbsp;
-                <a href="https://www.allthingstech-wales.co.uk">allthingstech-wales.co.uk</a>
-            </div>
-        </div>
-        <div class="footer-disclaimer">
-            This tool uses rule-based pattern matching and <strong>cannot guarantee</strong> detection of every scam.
-            When in doubt, contact the organisation directly using contact details from their
-            <strong>official website</strong> — not from the email.
-        </div>
-    </div>
-    <div class="footer-copy">
-        &copy; <span id="yr"></span> All Things Tech Wales &nbsp;·&nbsp; Local Tech, Done Right.
-    </div>
+<footer>
+    <p>
+        This tool uses rule-based pattern matching and <strong>cannot guarantee</strong> detection of every scam.<br>
+        When in doubt, contact the organisation directly using contact details from their <strong>official website</strong> — not from the email.
+    </p>
 </footer>
 
 
@@ -961,7 +665,7 @@ const RULES = [
             /https?:\/\/(paypal|amazon|apple|microsoft|google|netflix|barclays|lloyds|hsbc|natwest|halifax|santander|ebay|facebook|instagram|hmrc|irs|dvla)[a-z0-9]+-[a-z0-9-]+\.[a-z]{2,}\//gi,
             /* Login/secure/update/verify prefixes */
             /https?:\/\/(secure-|login-|update-|account-|verify-|signin-|webscr-|auth-)[a-z0-9.-]+\.[a-z]{2,}\//gi,
-            /* Suspicious new TLDs with brand keywords */
+            /* Suspicious TLDs with brand keywords */
             /https?:\/\/[a-z0-9-]*(paypal|amazon|apple|microsoft|google|netflix|bank|account|secure|login|verify)[a-z0-9-]*\.(xyz|top|club|online|site|info|tk|ml|ga|cf|gq|buzz|uno|pw)\//gi,
         ],
         explanation: 'This email contains links that look suspicious. Scammers disguise malicious websites using raw IP addresses, URL shorteners, or domain names crafted to resemble trusted brands. Never click a link in a suspicious email — always type the address into your browser directly.'
@@ -978,7 +682,7 @@ const RULES = [
         patterns: [
             /!{3,}/g,           /* Three or more consecutive exclamation marks */
             /\?{3,}/g,          /* Three or more consecutive question marks    */
-            /\b[A-Z]{6,}\b/g,   /* Six or more consecutive capital letters      */
+            /\b[A-Z]{6,}\b/g,   /* Six or more consecutive capital letters     */
             /\$\s*\d[\d,]*,\d{3}/g, /* Alarming large currency amounts         */
         ],
         explanation: 'Scam emails frequently use excessive capitalisation, strings of exclamation marks, and over-the-top formatting to create a sense of panic. Professional organisations maintain consistent, calm formatting.'
@@ -991,18 +695,18 @@ const RULES = [
    2.  SENDER ADDRESS ANALYSIS
    ----------------------------------------------------------------
    Checks run against the "From" field the user pastes in.
-   Each check returns { found, detail } and carries a weight that
-   feeds into the same overall suspicion score.
+   Each check returns a flag with a weight that feeds into the
+   same overall suspicion score as the body analysis.
    ---------------------------------------------------------------- */
 
-/** Well-known brands that should NEVER email from a free provider */
+/** Well-known brands that should never email from a free provider */
 const OFFICIAL_BRANDS = [
     'paypal','amazon','apple','microsoft','google','netflix','barclays',
     'lloyds','hsbc','natwest','halifax','santander','ebay','facebook',
     'instagram','hmrc','dvla','irs','nhs','royal mail','royalmail',
     'dhl','fedex','ups','bt','o2','vodafone','three','ee',
     'virgin','sky','talktalk','spotify','dropbox','linkedin','twitter',
-    'tesco','asda','sainsbury','argos','currys','pcworld','ao.com',
+    'tesco','asda','sainsbury','argos','currys','pcworld',
     'companies house','gov.uk','government','inland revenue',
 ];
 
@@ -1015,28 +719,24 @@ const FREE_PROVIDERS = [
     'gmx.com','gmx.co.uk','btinternet.com','virginmedia.com',
 ];
 
-/** Suspicious new / cheap TLDs often used by scammers */
+/** Suspicious cheap TLDs heavily used in scam campaigns */
 const DODGY_TLDS = [
     'xyz','top','club','online','site','info','tk','ml','ga','cf',
     'gq','buzz','uno','pw','icu','cyou','cam','rest','cfd','monster',
 ];
 
 /**
- * Parse a "From" field into its parts.
- * Handles formats:
+ * Parse a "From" field into its component parts.
+ * Handles:
  *   plain@domain.com
  *   Display Name <plain@domain.com>
  *   "Display Name" <plain@domain.com>
- *
- * @param {string} raw
- * @returns {{ displayName:string, local:string, domain:string, tld:string, valid:boolean }}
  */
 function parseSenderAddress(raw) {
     raw = raw.trim();
     let displayName = '';
     let emailPart   = raw;
 
-    /* Extract display name + angle-bracket address if present */
     const angleMatch = raw.match(/^(.*?)<([^>]+)>\s*$/);
     if (angleMatch) {
         displayName = angleMatch[1].replace(/["']/g, '').trim();
@@ -1054,9 +754,7 @@ function parseSenderAddress(raw) {
 }
 
 /**
- * Run all sender-address checks.
- * @param {string} rawSender
- * @returns {{ addressScore:number, addressFlags:Array }}
+ * Run all sender-address checks and return flags + score.
  */
 function analyseAddress(rawSender) {
     const raw = rawSender.trim();
@@ -1065,14 +763,13 @@ function analyseAddress(rawSender) {
     const p = parseSenderAddress(raw);
     const addressFlags = [];
 
-    /* Helper — push a flag */
     function flag(label, explanation, weight, detail) {
         addressFlags.push({ label, explanation, weight, detail });
     }
 
-    /* ---- Check 1: Free provider used for an "official" brand ---- */
+    /* Check 1: Free provider impersonating an official brand */
     if (p.valid && FREE_PROVIDERS.includes(p.domain)) {
-        const allText = p.displayName + ' ' + p.local;
+        const allText     = p.displayName + ' ' + p.local;
         const matchedBrand = OFFICIAL_BRANDS.find(b => allText.includes(b));
         if (matchedBrand) {
             flag(
@@ -1085,99 +782,98 @@ function analyseAddress(rawSender) {
         }
     }
 
-    /* ---- Check 2: Numbers replacing letters in domain (l33tspeak) ---- */
-    /* e.g. paypa1.com, g00gle.com, micros0ft.com, arnazon.com */
-    const leetDomain = p.domain.replace(/0/g,'o').replace(/1/g,'l').replace(/3/g,'e').replace(/4/g,'a').replace(/5/g,'s').replace(/rn/g,'m');
+    /* Check 2: Numbers replacing letters in domain (e.g. paypa1.com, g00gle.com) */
+    const leetDomain = p.domain
+        .replace(/0/g,'o').replace(/1/g,'l').replace(/3/g,'e')
+        .replace(/4/g,'a').replace(/5/g,'s').replace(/rn/g,'m');
     if (p.valid && leetDomain !== p.domain) {
         const matchedBrand = OFFICIAL_BRANDS.find(b => leetDomain.includes(b) && !p.domain.includes(b));
         if (matchedBrand) {
             flag(
                 'Domain uses look-alike characters to fake a brand',
                 `The domain "${p.domain}" uses numbers or substituted letters to mimic "${leetDomain}". `
-                + `This is a classic trick — at a glance it looks like the real address, but it is not.`,
+                + `At a glance it looks like the real address, but it is not.`,
                 6,
                 `Spoofed domain: ${p.domain}`
             );
         }
     }
 
-    /* ---- Check 3: Brand name + extra words in domain ---- */
-    /* e.g. paypal-support.com, amazon-helpdesk.net, microsoft-security.org */
+    /* Check 3: Brand name + extra words in domain (e.g. paypal-support.com) */
     if (p.valid) {
         const matchedBrand = OFFICIAL_BRANDS.find(b => {
-            /* Domain contains the brand but domain IS NOT exactly the brand's real domain */
-            return p.domain.includes(b.replace(/\s/g,'')) && p.domain !== b.replace(/\s/g,'') + '.com'
-                && p.domain !== b.replace(/\s/g,'') + '.co.uk'
-                && p.domain !== b.replace(/\s/g,'') + '.org';
+            const bn = b.replace(/\s/g,'');
+            return p.domain.includes(bn)
+                && p.domain !== bn + '.com'
+                && p.domain !== bn + '.co.uk'
+                && p.domain !== bn + '.org';
         });
-        /* Only flag if domain also has a hyphen, extra word, or unusual TLD */
         if (matchedBrand && (p.domain.includes('-') || DODGY_TLDS.includes(p.tld))) {
             flag(
                 'Domain spoofs a brand name with extra words',
                 `The domain "${p.domain}" includes the name of a well-known brand but adds extra words or hyphens. `
-                + `Scammers register domains like "amazon-support.net" or "paypal-secure.xyz" to trick people. The real company would use their exact official domain.`,
+                + `Scammers register domains like "amazon-support.net" to trick people. The real company uses their exact official domain only.`,
                 5,
                 `Suspicious domain: ${p.domain}`
             );
         }
     }
 
-    /* ---- Check 4: Suspicious TLD ---- */
+    /* Check 4: Suspicious TLD */
     if (p.valid && DODGY_TLDS.includes(p.tld)) {
         flag(
             'Suspicious domain extension (TLD)',
-            `The email comes from a ".${p.tld}" address. Extensions like .xyz, .top, .online, and .tk are very cheap to register and are heavily used in scam and phishing campaigns. Legitimate businesses almost always use .com, .co.uk, .org, or a recognised country code.`,
+            `.${p.tld} addresses are very cheap to register and are heavily used in scam campaigns. `
+            + `Legitimate businesses almost always use .com, .co.uk, .org, or a recognised country code.`,
             3,
             `Domain: ${p.domain}`
         );
     }
 
-    /* ---- Check 5: Display name says one brand, domain is another ---- */
+    /* Check 5: Display name says one brand, domain is something else entirely */
     if (p.valid && p.displayName) {
-        const nameContainsBrand  = OFFICIAL_BRANDS.find(b => p.displayName.includes(b));
+        const nameContainsBrand   = OFFICIAL_BRANDS.find(b => p.displayName.includes(b));
         const domainContainsBrand = nameContainsBrand && p.domain.includes(nameContainsBrand.replace(/\s/g,''));
         if (nameContainsBrand && !domainContainsBrand && !FREE_PROVIDERS.includes(p.domain)) {
             flag(
                 'Display name and email domain do not match',
                 `The sender's display name says "${p.displayName}" but the actual email domain is "${p.domain}". `
-                + `Anyone can set any display name they like — the domain after the @ is what really matters. These not matching is a major warning sign.`,
+                + `Anyone can set any display name they like — the domain after the @ is what really matters.`,
                 5,
                 `Name says: ${p.displayName} | Domain is: ${p.domain}`
             );
         }
     }
 
-    /* ---- Check 6: Gibberish / random-looking local part ---- */
-    /* Flag if local part is 8+ chars and looks random (high ratio of digits + consecutive consonants) */
+    /* Check 6: Randomly generated local part */
     if (p.valid && p.local.length >= 6) {
-        const digitRatio     = (p.local.match(/\d/g) || []).length / p.local.length;
-        const consonantRuns  = (p.local.match(/[bcdfghjklmnpqrstvwxyz]{4,}/gi) || []).length;
+        const digitRatio    = (p.local.match(/\d/g) || []).length / p.local.length;
+        const consonantRuns = (p.local.match(/[bcdfghjklmnpqrstvwxyz]{4,}/gi) || []).length;
         if (digitRatio > 0.45 || consonantRuns >= 2) {
             flag(
                 'Randomly generated sender address',
-                `The local part of the address ("${p.local}") looks randomly generated rather than being a real person's or department's name. Scammers often use auto-generated addresses to avoid spam filters.`,
+                `The local part of the address ("${p.local}") looks randomly generated rather than being a real person's or department's name. `
+                + `Scammers often use auto-generated addresses to avoid spam filters.`,
                 2,
                 `Local part: ${p.local}`
             );
         }
     }
 
-    /* ---- Check 7: Subdomain used to hide the real domain ---- */
-    /* e.g. paypal.com.malicious-site.xyz — real domain is malicious-site.xyz */
+    /* Check 7: Subdomain trick to hide the real domain (e.g. paypal.com.evil.xyz) */
     if (p.valid) {
         const parts = p.domain.split('.');
         if (parts.length >= 3) {
-            /* The "effective" registered domain is last two parts */
             const registeredDomain = parts.slice(-2).join('.');
             const subdomain        = parts.slice(0, -2).join('.');
-            /* If the subdomain contains a known brand but registered domain does not */
-            const brandInSub  = OFFICIAL_BRANDS.find(b => subdomain.includes(b.replace(/\s/g,'')));
-            const brandInRoot = brandInSub && registeredDomain.includes(brandInSub.replace(/\s/g,''));
+            const brandInSub       = OFFICIAL_BRANDS.find(b => subdomain.includes(b.replace(/\s/g,'')));
+            const brandInRoot      = brandInSub && registeredDomain.includes(brandInSub.replace(/\s/g,''));
             if (brandInSub && !brandInRoot) {
                 flag(
                     'Brand name hidden in subdomain to disguise real domain',
-                    `The address uses "${p.domain}" where "${brandInSub}" appears in the subdomain, but the actual registered domain is "${registeredDomain}". `
-                    + `This is a deceptive trick — your email client might show the brand name prominently while the real destination is a completely different site.`,
+                    `The address uses "${p.domain}" where "${brandInSub}" appears in the subdomain, `
+                    + `but the actual registered domain is "${registeredDomain}". `
+                    + `Your email client might show the brand name prominently while the real destination is a completely different site.`,
                     6,
                     `Real domain: ${registeredDomain} | Subdomain trick: ${subdomain}`
                 );
@@ -1233,7 +929,7 @@ const ADVICE = {
 
 
 /* ----------------------------------------------------------------
-   3.  UTILITIES
+   4.  UTILITIES
    ---------------------------------------------------------------- */
 
 /** Escape HTML to prevent XSS when inserting user text via innerHTML */
@@ -1248,7 +944,7 @@ function escapeHtml(str) {
 
 /**
  * Build highlighted HTML from plain text + an array of match ranges.
- * Overlapping ranges are merged; first-encountered category colour wins.
+ * Overlapping ranges are merged; first category colour wins.
  */
 function buildHighlightedHtml(text, ranges) {
     if (ranges.length === 0) return escapeHtml(text);
@@ -1284,7 +980,7 @@ function buildHighlightedHtml(text, ranges) {
 
 
 /* ----------------------------------------------------------------
-   4.  CORE ANALYSIS
+   5.  CORE BODY ANALYSIS
    ---------------------------------------------------------------- */
 function analyseText(text) {
     let totalScore = 0;
@@ -1319,16 +1015,12 @@ function analyseText(text) {
         }
     }
 
-    const risk = totalScore >= 10 ? 'high'
-               : totalScore >= 4  ? 'medium'
-               :                    'low';
-
-    return { totalScore, risk, flagsFound, allRanges };
+    return { totalScore, flagsFound, allRanges };
 }
 
 
 /* ----------------------------------------------------------------
-   5.  RENDER FUNCTIONS
+   6.  RENDER FUNCTIONS
    ---------------------------------------------------------------- */
 
 function renderBadge(risk) {
@@ -1346,15 +1038,15 @@ function renderBadge(risk) {
 }
 
 function renderScoreBar(totalScore, risk, flagsFound, addressFlags) {
-    const MAX_DISPLAY  = 30;
-    const pct          = Math.min(100, Math.round((totalScore / MAX_DISPLAY) * 100));
-    const barColor     = risk === 'high'   ? 'linear-gradient(90deg,#ff4a3a,#ff6b5b)'
-                       : risk === 'medium' ? 'linear-gradient(90deg,#e09000,#ffc845)'
-                       :                    'linear-gradient(90deg,#00d4ff,#00ff9d)';
-    const catWord      = flagsFound.length === 1 ? 'category' : 'categories';
-    const addrNote     = addressFlags && addressFlags.length > 0
-                       ? ` &nbsp;·&nbsp; ${addressFlags.length} sender address flag${addressFlags.length !== 1 ? 's' : ''}`
-                       : '';
+    const MAX_DISPLAY = 30;
+    const pct         = Math.min(100, Math.round((totalScore / MAX_DISPLAY) * 100));
+    const barColor    = risk === 'high'   ? '#b03020'
+                      : risk === 'medium' ? '#e09000'
+                      :                    '#22a355';
+    const catWord  = flagsFound.length === 1 ? 'category' : 'categories';
+    const addrNote = addressFlags && addressFlags.length > 0
+                   ? ` &nbsp;·&nbsp; ${addressFlags.length} sender address flag${addressFlags.length !== 1 ? 's' : ''}`
+                   : '';
 
     document.getElementById('score-card').innerHTML =
         `<div class="score-label">
@@ -1366,19 +1058,62 @@ function renderScoreBar(totalScore, risk, flagsFound, addressFlags) {
         </div>`;
 }
 
+function renderAddressFlags(addressResult) {
+    const card = document.getElementById('address-card');
+
+    if (!addressResult.parsed) {
+        card.style.display = 'none';
+        return;
+    }
+
+    const { addressFlags, parsed: p } = addressResult;
+    card.style.display = 'block';
+
+    const parsedHtml = p.valid
+        ? `<div class="addr-parsed">
+               <span class="addr-part">Display name: <span class="addr-value">${escapeHtml(p.displayName || '(none)')}</span></span>
+               <span class="addr-part">Local part: <span class="addr-value">${escapeHtml(p.local)}</span></span>
+               <span class="addr-part">Domain: <span class="addr-value">${escapeHtml(p.domain)}</span></span>
+               <span class="addr-part">Extension: <span class="addr-value">.${escapeHtml(p.tld)}</span></span>
+           </div>`
+        : `<p style="color:#777;font-size:0.9rem;">Could not fully parse the address — make sure it includes an @ symbol.</p>`;
+
+    if (addressFlags.length === 0) {
+        card.innerHTML =
+            `<h2>Sender Address Analysis</h2>
+             ${parsedHtml}
+             <p style="color:#1a6636;font-weight:bold;">No obvious red flags in the sender address.</p>`;
+        return;
+    }
+
+    let html = `<h2>Sender Address Analysis (${addressFlags.length} flag${addressFlags.length !== 1 ? 's' : ''})</h2>${parsedHtml}`;
+
+    for (const f of addressFlags) {
+        html +=
+            `<div class="addr-flag">
+                <div class="flag-dot dot-address" aria-hidden="true"></div>
+                <div>
+                    <div class="flag-category">${escapeHtml(f.label)}</div>
+                    <div class="flag-explanation">${escapeHtml(f.explanation)}</div>
+                    ${f.detail ? `<div class="flag-matches"><span class="match-chip">${escapeHtml(f.detail)}</span></div>` : ''}
+                </div>
+            </div>`;
+    }
+
+    card.innerHTML = html;
+}
+
 function renderFlags(flagsFound) {
     const card = document.getElementById('flags-card');
 
     if (flagsFound.length === 0) {
         card.innerHTML =
-            `<h2>Red Flags Found</h2>
-             <p style="color:var(--green); font-weight:600;">
-                No red flags detected in this email.
-             </p>`;
+            `<h2>Email Body — Red Flags Found</h2>
+             <p style="color:#1a6636;font-weight:bold;">No red flags detected in the email body.</p>`;
         return;
     }
 
-    let html = `<h2>Red Flags Found (${flagsFound.length})</h2>`;
+    let html = `<h2>Email Body — Red Flags Found (${flagsFound.length})</h2>`;
     for (const flag of flagsFound) {
         const textsArr  = [...flag.matchedTexts];
         const chipsHtml = textsArr.slice(0, 7)
@@ -1403,81 +1138,27 @@ function renderFlags(flagsFound) {
     card.innerHTML = html;
 }
 
-function renderAddressFlags(addressResult) {
-    const card = document.getElementById('address-card');
-
-    if (!addressResult.parsed) {
-        /* No address entered — hide the card */
-        card.style.display = 'none';
-        return;
-    }
-
-    const { addressFlags, parsed: p } = addressResult;
-    card.style.display = 'block';
-
-    /* Build the parsed-address row */
-    const parsedHtml = p.valid
-        ? `<div class="addr-parsed">
-               <span class="addr-part">Display name: <span class="addr-value">${escapeHtml(p.displayName || '(none)')}</span></span>
-               <span class="addr-part">Local part: <span class="addr-value">${escapeHtml(p.local)}</span></span>
-               <span class="addr-part">Domain: <span class="addr-value">${escapeHtml(p.domain)}</span></span>
-               <span class="addr-part">TLD: <span class="addr-value">.${escapeHtml(p.tld)}</span></span>
-           </div>`
-        : `<p style="color:var(--text-muted);font-size:0.9rem;">Could not fully parse the address — make sure it includes an @ symbol.</p>`;
-
-    if (addressFlags.length === 0) {
-        card.innerHTML =
-            `<h2>Sender Address Analysis</h2>
-             ${parsedHtml}
-             <p style="color:var(--green);font-weight:600;">No obvious red flags in the sender address.</p>`;
-        return;
-    }
-
-    let html = `<h2>Sender Address Analysis (${addressFlags.length} flag${addressFlags.length !== 1 ? 's' : ''})</h2>${parsedHtml}`;
-
-    for (const f of addressFlags) {
-        html +=
-            `<div class="addr-flag">
-                <div class="flag-dot dot-address" aria-hidden="true"></div>
-                <div>
-                    <div class="flag-category">${escapeHtml(f.label)}</div>
-                    <div class="flag-explanation">${escapeHtml(f.explanation)}</div>
-                    ${f.detail ? `<div class="flag-matches"><span class="match-chip">${escapeHtml(f.detail)}</span></div>` : ''}
-                </div>
-            </div>`;
-    }
-
-    card.innerHTML = html;
-}
-
 function renderHighlightedEmail(text, flagsFound, allRanges) {
     const highlightCard = document.getElementById('highlight-card');
 
-    if (allRanges.length === 0) {
+    if (!text || allRanges.length === 0) {
         highlightCard.style.display = 'none';
         return;
     }
 
     const SWATCH = {
-        urgency:   { bg: 'rgba(224,144,0,0.25)',  border: 'rgba(224,144,0,0.6)'  },
-        financial: { bg: 'rgba(255,74,58,0.2)',   border: 'rgba(255,74,58,0.5)'  },
-        personal:  { bg: 'rgba(176,106,255,0.2)', border: 'rgba(176,106,255,0.5)'},
-        url:       { bg: 'rgba(0,212,255,0.18)',  border: 'rgba(0,212,255,0.5)'  },
-        format:    { bg: 'rgba(0,255,157,0.15)',  border: 'rgba(0,255,157,0.4)'  }
+        urgency:   { bg: '#fdebd0', border: '#e09000' },
+        financial: { bg: '#fadbd8', border: '#c0392b' },
+        personal:  { bg: '#e8daef', border: '#8e44ad' },
+        url:       { bg: '#d6eaf8', border: '#2471a3' },
+        format:    { bg: '#d1f2eb', border: '#148f77' }
     };
 
-    const usedCategories = flagsFound.map(f => ({
-        cssClass: f.rule.cssClass,
-        category: f.rule.category
-    }));
-
-    const legendHtml = usedCategories.map(c => {
-        const s = SWATCH[c.cssClass] || { bg: '#333', border: '#666' };
+    const legendHtml = flagsFound.map(f => {
+        const s = SWATCH[f.rule.cssClass] || { bg: '#eee', border: '#999' };
         return `<span class="legend-item">
-                    <span class="legend-swatch"
-                          style="background:${s.bg}; outline:1px solid ${s.border};"
-                          aria-hidden="true"></span>
-                    ${escapeHtml(c.category)}
+                    <span class="legend-swatch" style="background:${s.bg}; outline:1px solid ${s.border};" aria-hidden="true"></span>
+                    ${escapeHtml(f.rule.category)}
                 </span>`;
     }).join('');
 
@@ -1498,7 +1179,7 @@ function renderAdvice(risk) {
 
 
 /* ----------------------------------------------------------------
-   6.  ORCHESTRATOR
+   7.  ORCHESTRATOR
    ---------------------------------------------------------------- */
 function analyseEmail() {
     const text   = document.getElementById('email-input').value.trim();
@@ -1511,11 +1192,11 @@ function analyseEmail() {
     }
 
     /* Run both engines */
-    const bodyResult    = text   ? analyseText(text)        : { totalScore: 0, risk: 'low', flagsFound: [], allRanges: [] };
-    const addressResult = sender ? analyseAddress(sender)   : { addressScore: 0, addressFlags: [], parsed: null };
+    const bodyResult    = text   ? analyseText(text)     : { totalScore: 0, flagsFound: [], allRanges: [] };
+    const addressResult = sender ? analyseAddress(sender) : { addressScore: 0, addressFlags: [], parsed: null };
 
-    /* Combine scores for final risk rating */
-    const combinedScore = bodyResult.totalScore + addressResult.addressScore;
+    /* Combine scores for a single risk rating */
+    const combinedScore = bodyResult.totalScore + (addressResult.addressScore || 0);
     const combinedRisk  = combinedScore >= 10 ? 'high'
                         : combinedScore >= 4  ? 'medium'
                         :                       'low';
@@ -1540,30 +1221,10 @@ function clearAll() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-
-/* ----------------------------------------------------------------
-   7.  KEYBOARD SHORTCUT  Ctrl/Cmd+Enter
-   ---------------------------------------------------------------- */
+/* Ctrl/Cmd+Enter shortcut */
 document.getElementById('email-input').addEventListener('keydown', function (e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') analyseEmail();
 });
-
-
-/* ----------------------------------------------------------------
-   8.  MOBILE NAV HAMBURGER
-   ---------------------------------------------------------------- */
-document.getElementById('hamburger-btn').addEventListener('click', function () {
-    const menu     = document.getElementById('main-menu');
-    const isOpen   = menu.classList.toggle('menu-open');
-    this.classList.toggle('is-active', isOpen);
-    this.setAttribute('aria-expanded', isOpen);
-});
-
-
-/* ----------------------------------------------------------------
-   9.  FOOTER YEAR
-   ---------------------------------------------------------------- */
-document.getElementById('yr').textContent = new Date().getFullYear();
 
 </script>
 </body>
